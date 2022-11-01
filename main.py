@@ -1,3 +1,5 @@
+import sqlite3
+import telebot
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
 
 
