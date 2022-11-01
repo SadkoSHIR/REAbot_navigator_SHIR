@@ -1,6 +1,3 @@
-print('ghb')
-
-print('тест гитхаба')
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
 
 
