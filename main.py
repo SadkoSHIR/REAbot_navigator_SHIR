@@ -1,27 +1,43 @@
 import sqlite3
 import telebot
+from aiogram import Bot, types
+from aiogram.dispatcher import Dispatcher
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 
 TOKEN = ''
 bot = telebot.TeleBot(TOKEN)
 
 
-def gen_main_markup():
-    markup = ReplyKeyboardMarkup()
-    markup.add()
+#хендлер для создания анкеты
+
+class CreateProfile(StatesGroup):
+	user_category = State()
+	sphere = State()
+
 
 @bot.message_handler(commands=['start'])
-def user_reg(message):
+async def start(message : types.Message):
+    if (not db.user_exists(message.from_user.id)):
+        db.add_user(message.from_user.id)
+        await message.answer('Привет👋\nЧтобы помочь тебе с выбором, мы должны узнать о тебе немного.', reply_markup=user_reg)
+    else:
+	    await bot.send_message(message.from_user.id, " эм вы уже зареганы?")
+
+
+async def user_reg(state=CreateProfile.user_category, message):
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
     itembtn1 = types.KeyboardButton("абитуриент")
     itembtn2 = types.KeyboardButton("представитель РЭУ")
     markup.add(itembtn1, itembtn2)
 
-    msg = bot.send_message(message.chat.id, 'Кто ты?', reply_markup=markup)
+    msg = bot.send_message(message.chat.id, 'Для начала, кто ты?', reply_markup=markup)
+    await CreateProfile.next()
 
 
-@bot.message_handler(commands=["представитель РЭУ"])
+@bot.message_handler(state=CreateProfile.sphere, commands=["представитель РЭУ"])
 def interest(message):
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
     itembtn1 = types.KeyboardButton("Информатика")
@@ -37,7 +53,7 @@ def interest(message):
     # bot.register_next_step_handler(msg, #следующий шаг)
 
 
-@bot.message_handler(commands=["абитуриент"])
+@bot.message_handler(state=CreateProfile.sphere, commands=["абитуриент"])
 def interest(message):
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
     itembtn1 = types.KeyboardButton("Информатика")
