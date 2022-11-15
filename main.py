@@ -53,16 +53,19 @@ def interest(message):
     # bot.register_next_step_handler(msg, #следующий шаг)
 
 
-@bot.message_handler(state=CreateProfile.sphere, commands=["абитуриент"])
+@bot.message_handler(commands=["абитуриент"])
 def interest(message):
-    markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-    itembtn1 = types.KeyboardButton("Информатика")
-    itembtn2 = types.KeyboardButton("Математика")
-    itembtn3 = types.KeyboardButton("Экономика и бизнес")
-    itembtn4 = types.KeyboardButton("Управление")
-    itembtn5 = types.KeyboardButton("Лингвистика")
-    itembtn6 = types.KeyboardButton("Социальная сфера")
-    itembtn7 = types.KeyboardButton("Другое")
-    markup.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5, itembtn6, itembtn7)
+    markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
+    btn1 = types.KeyboardButton("Информатика")
+    btn2 = types.KeyboardButton("Математика")
+    btn3 = types.KeyboardButton("Общ")
+    btn4 = types.KeyboardButton("Рус")
+    btn5 = types.KeyboardButton("Англ")
+    btn6 = types.KeyboardButton("Физика")
+    btn7 = types.KeyboardButton("Другое")
 
-    msg = bot.send_message(message.chat.id, 'Какое направление тебя сейчас интересует?', reply_markup=markup)
+    markup.row(btn1, btn2, btn3).add(bth7).row(btn4, btn5, btn6)
+
+    msg = bot.send_message(message.chat.id, 'Какой предмет ЕГЭ ты планируешь сдавать?', reply_markup=markup)
+
+
