@@ -68,4 +68,19 @@ def interest(message):
 
     msg = bot.send_message(message.chat.id, 'Какой предмет ЕГЭ ты планируешь сдавать?', reply_markup=markup)
 
+@bot.message_handler(commands=["Другое"])
+def interest(message):
+    markup2 = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
+    btn1 = types.KeyboardButton("Информатика")
+    btn2 = types.KeyboardButton("Математика")
+    btn3 = types.KeyboardButton("Общ")
+    btn4 = types.KeyboardButton("Рус")
+    btn5 = types.KeyboardButton("Англ")
+    btn6 = types.KeyboardButton("Физика")
+    btn7 = types.KeyboardButton("Другое")
+
+
+    markup2.row(btn1, btn2, btn3).add(bth7).row(btn4, btn5, btn6)
+    msg = bot.send_message(message.chat.id, 'Поздравляю! Ты закнчил вводную часть. Теперь просто отмечай понравившиеся факультеты и направления.\nСтуденты свяжутся с тобой!', reply_markup=markup2)
+
 
