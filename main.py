@@ -5,39 +5,39 @@ from aiogram.dispatcher import Dispatcher
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-
+import os
 
 TOKEN = ''
 bot = telebot.TeleBot(TOKEN)
+db = Dispatcher(bot)
+
+hello_count=[]
 
 
-#хендлер для создания анкеты
 
 class CreateProfile(StatesGroup):
-	user_category = State()
-	sphere = State()
+    user_category = State()
+    sphere = State()
 
 
-@bot.message_handler(commands=['start'])
-async def start(message : types.Message):
-    if (not db.user_exists(message.from_user.id)):
-        db.add_user(message.from_user.id)
-        await message.answer('Привет👋\nЧтобы помочь тебе с выбором, мы должны узнать о тебе немного.', reply_markup=user_reg)
+@db.message_handler()
+async def start(message: types.Message):
+    if len(hello_count) = 0:
+        bot.send_message(message.chat.id,
+                         "Привет👋\nЧтобы помочь тебе с выбором, мы должны узнать о тебе немного.'")
     else:
-	    await bot.send_message(message.from_user.id, " эм вы уже зареганы?")
+        @db.message_handler(commands=['start'])
+        async def user_reg(message):
+            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+            itembtn1 = types.KeyboardButton("абитуриент")
+            itembtn2 = types.KeyboardButton("представитель РЭУ")
+            markup.add(itembtn1, itembtn2)
 
+            bot.send_message(message.chat.id, 'Для начала, кто ты?', reply_markup=markup)
+            await CreateProfile.next()
+    hello_count.insert(1, 1) #факт приветсвия
 
-async def user_reg(state=CreateProfile.user_category, message):
-    markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-    itembtn1 = types.KeyboardButton("абитуриент")
-    itembtn2 = types.KeyboardButton("представитель РЭУ")
-    markup.add(itembtn1, itembtn2)
-
-    msg = bot.send_message(message.chat.id, 'Для начала, кто ты?', reply_markup=markup)
-    await CreateProfile.next()
-
-
-@bot.message_handler(state=CreateProfile.sphere, commands=["представитель РЭУ"])
+@db.message_handler(state=CreateProfile.sphere, commands=["представитель РЭУ"])
 def interest(message):
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
     itembtn1 = types.KeyboardButton("Информатика")
@@ -49,11 +49,11 @@ def interest(message):
     itembtn7 = types.KeyboardButton("Другое")
     markup.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5, itembtn6, itembtn7)
 
-    msg = bot.send_message(message.chat.id, 'На каком направлении ты обучаешься?', reply_markup=markup)
+    bot.send_message(message.chat.id, 'На каком направлении ты обучаешься?', reply_markup=markup)
     # bot.register_next_step_handler(msg, #следующий шаг)
 
 
-@bot.message_handler(commands=["абитуриент"])
+@db.message_handler(commands=["абитуриент"])
 def interest(message):
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
     btn1 = types.KeyboardButton("Информатика")
@@ -63,24 +63,37 @@ def interest(message):
     btn5 = types.KeyboardButton("Англ")
     btn6 = types.KeyboardButton("Физика")
     btn7 = types.KeyboardButton("Другое")
+    btn8 = types.KeyboardButton("закончить")
 
-    markup.row(btn1, btn2, btn3).add(bth7).row(btn4, btn5, btn6)
+    markup.row(btn1, btn2, btn3).row(btn4, btn5, btn6).add(btn8).add(btn7)
 
-    msg = bot.send_message(message.chat.id, 'Какой предмет ЕГЭ ты планируешь сдавать?', reply_markup=markup)
 
-@bot.message_handler(commands=["Другое"])
-def interest(message):
+    if message.text == "Другое":
+        interest_(message)
+
+    elif message.text == "закончить":
+        a = telebot.types.ReplyKeyboardRemove()
+        bot.send_message(message.chat.id,
+                         'Поздравляю! Ты закнчил вводную часть. Теперь просто отмечай понравившиеся факультеты и направления.\nСтуденты свяжутся с тобой!',
+                         reply_markup=a)
+        
+
+
+def interest_(message):
     markup2 = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
-    btn1 = types.KeyboardButton("Информатика")
-    btn2 = types.KeyboardButton("Математика")
-    btn3 = types.KeyboardButton("Общ")
-    btn4 = types.KeyboardButton("Рус")
-    btn5 = types.KeyboardButton("Англ")
-    btn6 = types.KeyboardButton("Физика")
-    btn7 = types.KeyboardButton("Другое")
+    btn1 = types.KeyboardButton("Химия")
+    btn2 = types.KeyboardButton("Биология")
+    btn3 = types.KeyboardButton("История")
+    btn4 = types.KeyboardButton("География")
+    btn5 = types.KeyboardButton("Литература")
+    btn6 = types.KeyboardButton("закончить")
+    btn7 = types.KeyboardButton("Другoе")
 
+    markup2.row(btn1, btn2, btn3).row(btn4, btn5).add(btn7).add(btn6)
 
-    markup2.row(btn1, btn2, btn3).add(bth7).row(btn4, btn5, btn6)
-    msg = bot.send_message(message.chat.id, 'Поздравляю! Ты закнчил вводную часть. Теперь просто отмечай понравившиеся факультеты и направления.\nСтуденты свяжутся с тобой!', reply_markup=markup2)
-
-
+    if message.text == "Другoе":
+        interest(message)
+    elif message.text == "закончить":
+        a = telebot.types.ReplyKeyboardRemove()
+        bot.send_message(message.chat.id,
+                         'Поздравляю! Ты закнчил вводную часть. Теперь просто отмечай понравившиеся факультеты и направления.\nСтуденты свяжутся с тобой!', reply_markup=a)
