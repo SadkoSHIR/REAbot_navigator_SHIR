@@ -1,38 +1,37 @@
 import telebot
-from aiogram import Bot, types
+from aiogram import types
 from aiogram.dispatcher import Dispatcher
-from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
-import os
 
-TOKEN = ''
+TOKEN = '5728728359:AAH_tdlZ7iw2Vj6Uafnm9rJZBkKKb7zhTPQ'
 bot = telebot.TeleBot(TOKEN)
 db = Dispatcher(bot)
 
 hello_count = []
 
 
-@db.message_handler()
-def start(message: types.Message):
+@db.message_handler(commands=['start'])
+async def start(message: types.Message):
     if len(hello_count) == 0:
         bot.send_message(message.chat.id,
                          "Привет👋\nЧтобы помочь тебе с выбором, мы должны узнать о тебе немного.'")
-    else:
         user_reg(message)
-        hello_count.insert(1, 1)  # факт приветсвия
-    
-    
-@db.message_handler(commands=['start'])
-        def user_reg(message):
-            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-            itembtn1 = types.KeyboardButton("абитуриент")
-            itembtn2 = types.KeyboardButton("представитель РЭУ")
-            markup.add(itembtn1, itembtn2)
+    else:
+        interest_(message)
+    hello_count.insert(1, 1)  # факт приветсвия
 
-            bot.send_message(message.chat.id, 'Для начала, кто ты?', reply_markup=markup)
+
+async def user_reg(message):
+    markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+    itembtn1 = types.KeyboardButton("абитуриент")
+    itembtn2 = types.KeyboardButton("представитель РЭУ")
+    markup.add(itembtn1, itembtn2)
+
+    bot.send_message(message.chat.id, 'Для начала, кто ты?')
+
 
 @db.message_handler(commands=["представитель РЭУ"])
-def interest(message):
-    markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+async def interest(message):
+    markup1 = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
     itembtn1 = types.KeyboardButton("Информатика")
     itembtn2 = types.KeyboardButton("Математика")
     itembtn3 = types.KeyboardButton("Экономика и бизнес")
@@ -40,14 +39,14 @@ def interest(message):
     itembtn5 = types.KeyboardButton("Лингвистика")
     itembtn6 = types.KeyboardButton("Социальная сфера")
     itembtn7 = types.KeyboardButton("Другое")
-    markup.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5, itembtn6, itembtn7)
+    markup1.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5, itembtn6, itembtn7)
 
-    bot.send_message(message.chat.id, 'На каком направлении ты обучаешься?', reply_markup=markup)
+    bot.send_message(message.chat.id, 'На каком направлении ты обучаешься?')
     # bot.register_next_step_handler(msg, #следующий шаг)
 
 
 @db.message_handler(commands=["абитуриент"])
-def interest(message):
+async def interest(message):
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
     btn1 = types.KeyboardButton("Информатика")
     btn2 = types.KeyboardButton("Математика")
@@ -71,7 +70,7 @@ def interest(message):
                          reply_markup=a)
 
 
-def interest_(message):
+async def interest_(message):
     markup2 = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
     btn1 = types.KeyboardButton("Химия")
     btn2 = types.KeyboardButton("Биология")
@@ -91,3 +90,10 @@ def interest_(message):
                          'Поздравляю! Ты закнчил вводную часть. Теперь просто отмечай понравившиеся факультеты и '
                          'направления.\nСтуденты свяжутся с тобой!',
                          reply_markup=a)
+
+
+while True:
+    try:
+        bot.polling(none_stop=True)
+    except OSError:
+        bot.polling(none_stop=True)
