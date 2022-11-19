@@ -1,5 +1,5 @@
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
-
+from db_functions import put_abitur_into_db
 
 TOKEN = ''
 bot = telebot.TeleBot(TOKEN)
