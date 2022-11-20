@@ -18,7 +18,7 @@ def put_student_into_db(id, faculty, branch):
 
     branch_id = cur.execute(f"SELECT id FROM Branches WHERE Faculty_id = "
                             f"(SELECT id FROM Faculties WHERE lower('{faculty}') = lower(Name)) "
-                            f"AND lower('{branch}') = lower(Branches.Name)")
+                            f"AND lower('{branch}') = lower(Branches.Name)").fetchone()[0]
 
     cur.execute(f"INSERT INTO Users (id, Type, Branch_id) VALUES ('{id}', 'student', '{branch_id}')")
 
