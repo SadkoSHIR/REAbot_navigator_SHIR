@@ -1,8 +1,11 @@
+from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
+from db_functions import put_abitur_into_db, put_student_into_db
+
 import telebot
 from aiogram import types
 from aiogram.dispatcher import Dispatcher
 
-TOKEN = '5728728359:AAH_tdlZ7iw2Vj6Uafnm9rJZBkKKb7zhTPQ'
+TOKEN = ''
 bot = telebot.TeleBot(TOKEN)
 db = Dispatcher(bot)
 
