@@ -1,10 +1,14 @@
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
-from db_functions import put_abitur_into_db, put_student_into_db
-from passwords import TOKEN
 
 import telebot
 from aiogram import types
 from aiogram.dispatcher import Dispatcher
+
+from db_functions import put_abitur_into_db, put_student_into_db
+from db_functions import get_recomendations, get_faculty, get_branches
+from db_functions import get_brach_info, get_students
+
+from passwords import TOKEN
 
 bot = telebot.TeleBot(TOKEN)
 db = Dispatcher(bot)
