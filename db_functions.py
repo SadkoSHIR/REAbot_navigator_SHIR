@@ -23,3 +23,17 @@ def put_student_into_db(id, faculty, branch):
     cur.execute(f"INSERT INTO Users (id, Type, Branch_id) VALUES ('{id}', 'student', '{branch_id}')")
 
     con.commit()
+
+
+def get_recomendations(id):  # возвращает факультеты (список id)
+    con = sqlite3.connect('REA_DB.db')
+    cur = con.cursor()
+
+    recomends = cur.execute(f"SELECT DISTINCT Faculties.id FROM Faculties, Branches "
+                            f"WHERE Faculties.id = Branches.Faculty_id AND "
+                            f"(SELECT Sphere FROM Users WHERE id = {id}) = Branches.Sphere").fetchall()
+    con.commit()
+
+    recomends = list([x[0] for x in recomends])
+
+    return recomends
