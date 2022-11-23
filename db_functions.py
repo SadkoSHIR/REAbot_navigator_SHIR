@@ -37,3 +37,14 @@ def get_recomendations(id):  # возвращает факультеты (спи
     recomends = list([x[0] for x in recomends])
 
     return recomends
+
+
+def get_faculty(id):  # от id получаем всю инфу о факультете
+    con = sqlite3.connect('REA_DB.db')
+    cur = con.cursor()
+
+    faculty_info = cur.execute(f"SELECT * FROM Faculties WHERE id = {id}").fetchall()[0]
+
+    con.commit()
+
+    return faculty_info
