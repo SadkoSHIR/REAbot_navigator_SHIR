@@ -48,3 +48,17 @@ def get_faculty(id):  # от id получаем всю инфу о факуль
     con.commit()
 
     return faculty_info
+
+
+def get_branches(faculty_id):  # возвращает направления (список id) отсортированных по егэ юзера
+    # без сортировки
+    con = sqlite3.connect('REA_DB.db')
+    cur = con.cursor()
+
+    branches = cur.execute(f"SELECT id FROM Branches "
+                           f"WHERE {faculty_id} = Faculty_id").fetchall()
+    con.commit()
+
+    branches = list([x[0] for x in branches])
+
+    return branches
