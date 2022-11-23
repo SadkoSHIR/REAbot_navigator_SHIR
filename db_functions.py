@@ -73,3 +73,15 @@ def get_brach_info(id):
     con.commit()
 
     return branch_info
+
+
+def get_students(branch_id):  # возвращает список телеграм id студентов
+    con = sqlite3.connect('REA_DB.db')
+    cur = con.cursor()
+
+    students = cur.execute(f"SELECT id FROM Users WHERE Branch_id = {branch_id}").fetchall()
+    con.commit()
+
+    students = list([x[0] for x in students])
+
+    return students
