@@ -62,3 +62,14 @@ def get_branches(faculty_id):  # возвращает направления (с
     branches = list([x[0] for x in branches])
 
     return branches
+
+
+def get_brach_info(id):
+    con = sqlite3.connect('REA_DB.db')
+    cur = con.cursor()
+
+    branch_info = cur.execute(f"SELECT * FROM Branches WHERE id = {id}").fetchall()[0]
+
+    con.commit()
+
+    return branch_info
