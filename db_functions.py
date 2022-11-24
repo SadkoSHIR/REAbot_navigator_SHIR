@@ -17,7 +17,7 @@ def put_student_into_db(id, faculty, branch):
     cur = con.cursor()
 
     branch_id = cur.execute(f"SELECT id FROM Branches WHERE Faculty_id = "
-                            f"(SELECT id FROM Faculties WHERE lower('{faculty}') = lower(Name)) "
+                            f"(SELECT id FROM Faculties WHERE lower('{faculty}') = lower(Short_name)) "
                             f"AND lower('{branch}') = lower(Branches.Name)").fetchone()[0]
 
     cur.execute(f"INSERT INTO Users (id, Type, Branch_id) VALUES ('{id}', 'student', '{branch_id}')")
@@ -85,3 +85,14 @@ def get_students(branch_id):  # возвращает список телегра
     students = list([x[0] for x in students])
 
     return students
+
+
+def get_all_faculties():
+    con = sqlite3.connect('REA_DB.db')
+    cur = con.cursor()
+
+    faculties = cur.execute(f"SELECT Short_name FROM Faculties").fetchall()
+    con.commit()
+
+    faculties = list([x[0] for x in faculties])
+    return faculties
