@@ -4,7 +4,7 @@ import telebot
 from aiogram import types
 from aiogram.dispatcher import Dispatcher
 
-from db_functions import put_abitur_into_db, put_student_into_db
+from db_functions import put_abitur_into_db, put_student_into_db, get_all_faculties
 from db_functions import get_recomendations, get_faculty, get_branches
 from db_functions import get_brach_info, get_students
 
