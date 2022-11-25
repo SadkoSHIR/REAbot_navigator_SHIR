@@ -1,13 +1,11 @@
 import sqlite3
 
 
-def put_abitur_into_db(id, sphere, ege):
+def put_abitur_into_db(id, sphere):
     con = sqlite3.connect('REA_DB.db')
     cur = con.cursor()
 
-    ege = '8'.join(ege)
-
-    cur.execute(f"INSERT INTO Users (id, Type, Sphere, EGE) VALUES ('{id}', 'abiturient', '{sphere}', '{ege}')")
+    cur.execute(f"INSERT INTO Users (id, Type, Sphere) VALUES ('{id}', 'abiturient', '{sphere}')")
 
     con.commit()
 
@@ -96,3 +94,14 @@ def get_all_faculties():
 
     faculties = list([x[0] for x in faculties])
     return faculties
+
+
+def get_all_spheres():
+    con = sqlite3.connect('REA_DB.db')
+    cur = con.cursor()
+
+    spheres = cur.execute(f"SELECT DISTINCT Sphere FROM Branches").fetchall()
+    con.commit()
+
+    spheres = list([x[0] for x in spheres])
+    return spheres
