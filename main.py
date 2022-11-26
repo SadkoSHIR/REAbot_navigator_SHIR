@@ -11,15 +11,19 @@ from passwords import TOKEN
 bot = telebot.TeleBot(TOKEN)
 
 
-def interest_(message):
+def get_spheres():
+    return ['Информатика', 'Экономика', 'Математика', 'Управление', 'Другое']
+
+
+def interest_():
     pass
 
 
 @bot.message_handler(commands=['start'])
-async def start_welcome(message):
-    bot.send_message(message.chat.id,
-                     "Привет👋\nЧтобы помочь тебе с выбором, мы должны узнать о тебе немного.")
-    await user_reg(message)
+def start_welcome(message):
+    msg = bot.send_message(message.chat.id,
+                           "Привет👋\nЧтобы помочь тебе с выбором, мы должны узнать о тебе немного.")
+    bot.register_next_step_handler(msg, user_reg)
 
 
 async def user_reg(message):
@@ -27,21 +31,18 @@ async def user_reg(message):
     itembtn1 = types.KeyboardButton("абитуриент")
     itembtn2 = types.KeyboardButton("представитель РЭУ")
     markup.add(itembtn1, itembtn2)
-
     bot.send_message(message.chat.id, 'Для начала, кто ты?')
 
 
-@bot.message_handler(commands=["абитуриент"])
+@bot.message_handler(contest_types=["абитуриент"])
 async def interest__(message):
     markup1 = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-    itembtn1 = types.KeyboardButton("Информатика")
-    itembtn2 = types.KeyboardButton("Математика")
-    itembtn3 = types.KeyboardButton("Экономика и бизнес")
-    itembtn4 = types.KeyboardButton("Управление")
-    itembtn5 = types.KeyboardButton("Лингвистика")
-    itembtn6 = types.KeyboardButton("Социальная сфера")
-    itembtn7 = types.KeyboardButton("Другое")
-    markup1.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5, itembtn6, itembtn7)
+    ss = get_spheres()
+    spheres = []
+    for i in ss:
+        spheres.append(types.KeyboardButton(i))
+
+    markup1.add(spheres)
 
     bot.send_message(message.chat.id, 'Какое направление тебя интересует?')
     # bot.register_next_step_handler(msg, #следующий шаг)
