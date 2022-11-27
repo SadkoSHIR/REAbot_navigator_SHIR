@@ -9,7 +9,7 @@ from db_functions import get_brach_info, get_students
 from passwords import TOKEN
 
 bot = telebot.TeleBot(TOKEN)
-
+db =
 
 @bot.message_handler(commands=['help'])
 def help_message(message):
