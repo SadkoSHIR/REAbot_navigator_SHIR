@@ -105,3 +105,12 @@ def get_all_spheres():
 
     spheres = list([x[0] for x in spheres])
     return spheres
+
+
+def user_in_db(id):
+    con = sqlite3.connect('../REA_DB.db')
+    cur = con.cursor()
+    result = cur.execute(f"SELECT * FROM Users WHERE id = '{id}'").fetchall()
+    if result:
+        return True
+    return False
