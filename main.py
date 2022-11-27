@@ -38,6 +38,7 @@ def user_registration(message):
     bot.send_message(message.chat.id, 'Для начала, кто ты?',
                      reply_markup=[markup])
 
+
 @bot.message_handler(content_types='text')
 def text_message(message):
     print(message.text)
