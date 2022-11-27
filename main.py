@@ -1,18 +1,15 @@
 import telebot
 from aiogram import types
 
-from db_functions import dbworker
-'''
 from db_functions import user_in_db, get_all_spheres, get_all_faculties
 from db_functions import put_abitur_into_db, put_student_into_db
 from db_functions import get_recomendations, get_faculty, get_branches
 from db_functions import get_brach_info, get_students
-'''
+
 from passwords import TOKEN
 
 bot = telebot.TeleBot(TOKEN)
 
-db = dbworker('REA_DB.db') #инициализируем базу дано
 
 @bot.message_handler(commands=['help'])
 def help_message(message):
@@ -72,15 +69,15 @@ def abiturient_registration(message):
     bot.send_message(message.chat.id,
                      'Поздравляю! Ты закнчил вводную часть. Теперь просто отмечай понравившиеся факультеты и '
                      'направления.\nСтуденты свяжутся с тобой!')
-    if (not db.user_in_db(message.from_user.id)):
-        db.put_abitur_into_db(message.from_user.id, message.text)
+    if (not user_in_db(message.from_user.id)):
+        put_abitur_into_db(message.from_user.id, message.text)
 
 
 def student_registration(message):
     bot.send_message(message.chat.id,
                      'Здесь скоро будет регистрация')
-    if (not db.user_in_db(message.from_user.id)):
-        db.put_student_into_db(message.from_user.id, #сюда бранч)
+    if (not user_in_db(message.from_user.id)):
+        put_student_into_db(message.from_user.id, ...)
 
 
 while True:
