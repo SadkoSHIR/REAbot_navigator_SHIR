@@ -48,7 +48,7 @@ def get_faculty(id):  # от id получаем всю инфу о факуль
     return faculty_info
 
 
-def get_branches(faculty_id):  # возвращает направления (список id) отсортированных по егэ юзера
+def get_branches(faculty_id):  # возвращает направления (список id)
     # без сортировки
     con = sqlite3.connect('REA_DB.db')
     cur = con.cursor()
@@ -108,7 +108,7 @@ def get_all_spheres():
 
 
 def user_in_db(id):
-    con = sqlite3.connect('../REA_DB.db')
+    con = sqlite3.connect('REA_DB.db')
     cur = con.cursor()
     result = cur.execute(f"SELECT * FROM Users WHERE id = '{id}'").fetchall()
     if result:
