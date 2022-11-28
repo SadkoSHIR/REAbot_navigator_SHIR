@@ -66,11 +66,34 @@ def abiturient_registration(message):
     # bot.register_next_step_handler(msg, #следующий шаг)
 
     telebot.types.ReplyKeyboardRemove()
-    bot.send_message(message.chat.id,
-                     'Поздравляю! Ты закончил вводную часть. Теперь просто отмечай понравившиеся факультеты и '
-                     'направления.\nСтуденты свяжутся с тобой!')
+
     if (not user_in_db(message.from_user.id)):
         put_abitur_into_db(message.from_user.username, message.text)
+
+    msg = bot.send_message(message.chat.id,
+                     'Поздравляю! Ты закончил вводную часть. Теперь просто отмечай понравившиеся факультеты и '
+                     'направления.\nСтуденты свяжутся с тобой!')
+
+    bot.register_next_step_handler(msg, abiturient_recomendations)
+    if (not user_in_db(message.from_user.id)):
+        put_abitur_into_db(message.from_user.username, message.text)
+
+
+def abiturient_recomendations(message):
+    recomendations = get_recomendations()
+    print(recomendations)
+    reply_keyboard = []
+    for i in range(len(recomendations[::2])):
+        reply_keyboard.append([recomendations[i], recomendations[i + 1]])
+    if len(recomendations) % 2 == 1:
+        reply_keyboard.append([recomendations[-1]])
+
+    markup = types.ReplyKeyboardMarkup(reply_keyboard,
+                                       one_time_keyboard=True,
+                                       resize_keyboard=True)
+
+    bot.send_message(message.chat.id, 'Укажи, какая одна сфера тебя интересует больше всего?',
+                     reply_markup=[markup])
 
 
 def student_registration(message):
