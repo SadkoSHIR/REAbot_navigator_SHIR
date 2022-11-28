@@ -61,23 +61,41 @@ def abiturient_registration(message):
                                        one_time_keyboard=True,
                                        resize_keyboard=True)
 
-    bot.send_message(message.chat.id, 'Укажи, какая одна сфера тебя итнересует больше всего?',
+    bot.send_message(message.chat.id, 'Укажи, какая одна сфера тебя интересует больше всего?',
                      reply_markup=[markup])
     # bot.register_next_step_handler(msg, #следующий шаг)
 
     telebot.types.ReplyKeyboardRemove()
     bot.send_message(message.chat.id,
-                     'Поздравляю! Ты закнчил вводную часть. Теперь просто отмечай понравившиеся факультеты и '
+                     'Поздравляю! Ты закончил вводную часть. Теперь просто отмечай понравившиеся факультеты и '
                      'направления.\nСтуденты свяжутся с тобой!')
     if (not user_in_db(message.from_user.id)):
-        put_abitur_into_db(message.from_user.id, message.text)
+        put_abitur_into_db(message.from_user.username, message.text)
 
 
 def student_registration(message):
+    all_faculties = get_all_faculties()
+    print(all_faculties)
+    reply_keyboard = []
+    for i in range(len(all_faculties[::2])):
+        reply_keyboard.append([all_faculties[i], all_faculties[i + 5]])
+    if len(all_faculties) % 2 != 0:
+        reply_keyboard.append([all_faculties[i-2]])
+
+    markup = types.ReplyKeyboardMarkup(reply_keyboard,
+                                       one_time_keyboard=True,
+                                       resize_keyboard=True)
+
+    bot.send_message(message.chat.id, 'Укажи, на каком направлеии ты обучаешься?',
+                     reply_markup=[markup])
+
+    telebot.types.ReplyKeyboardRemove()
     bot.send_message(message.chat.id,
-                     'Здесь скоро будет регистрация')
+                     'Поздравляю! Ты закончил вводную часть. Теперь жди абитуриентов, нуждающихся в твоей помощи.')
+
+
     if (not user_in_db(message.from_user.id)):
-        put_student_into_db(message.from_user.id, ...)
+        put_student_into_db(message.from_user.username, ...)
 
 
 while True:
