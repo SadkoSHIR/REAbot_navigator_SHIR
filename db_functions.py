@@ -53,8 +53,9 @@ def get_branches(faculty_short_name):  # возвращает направлен
     con = sqlite3.connect('REA_DB.db')
     cur = con.cursor()
 
-    branches = cur.execute(f"SELECT id FROM Branches "
-                           f"WHERE {faculty_short_name} = Short_name").fetchall()
+    branches = cur.execute(f"SELECT Name FROM Branches "
+                           f"WHERE  Faculty_id = "
+                           f"(SELECT id FROM Faculties WHERE Short_name = '{faculty_short_name}')").fetchall()
     con.commit()
 
     branches = list([x[0] for x in branches])
