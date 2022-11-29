@@ -46,6 +46,30 @@ def text_message(message):
         abiturient_registration(message)
     elif message.text == 'студент':
         student_registration(message)
+    elif message.text in get_all_spheres():
+        if (not user_in_db(message.from_user.id)):
+            put_abitur_into_db(message.from_user.id, message.text)
+
+        bot.send_message(message.chat.id,
+                         'Поздравляю! Ты закончил вводную часть. Теперь просто отмечай понравившиеся факультеты и '
+                         'направления.\nСтуденты свяжутся с тобой!')
+
+        abiturient_recomendations(message)
+
+        telebot.types.ReplyKeyboardRemove()
+    elif message.text in get_all_faculties():
+        global student_fac
+        student_fac = message.text
+        student_registration_finish(message)
+    elif message.text in get_branches(student_fac):
+        student_branch = message.text
+
+        bot.send_message(message.chat.id,
+                         'Поздравляю! Ты закончил вводную часть. Теперь жди абитуриентов, нуждающихся в твоей помощи.')
+
+        if (not user_in_db(message.from_user.id)):
+            put_student_into_db(message.from_user.id, student_fac, student_branch)
+
 
 
 def abiturient_registration(message):
@@ -53,7 +77,7 @@ def abiturient_registration(message):
     print(all_spheres)
     reply_keyboard = []
     for i in range(len(all_spheres[::2])):
-        reply_keyboard.append([all_spheres[i], all_spheres[i + 1]])
+        reply_keyboard.append([all_spheres[i], all_spheres[i + 3]])
     if len(all_spheres) % 2 == 1:
         reply_keyboard.append([all_spheres[-1]])
 
@@ -65,44 +89,29 @@ def abiturient_registration(message):
                      reply_markup=[markup])
     # bot.register_next_step_handler(msg, #следующий шаг)
 
-    telebot.types.ReplyKeyboardRemove()
 
-    if (not user_in_db(message.from_user.id)):
-        put_abitur_into_db(message.from_user.username, message.text)
+def abiturient_recomendations(message):
+    recomendations = get_recomendations(message.from_user.id)
+    print(recomendations)
+    reply_keyboard = []
+    for i in range(len(recomendations[::2])):
+        reply_keyboard.append([recomendations[i], recomendations[i + 1]])
+    if len(recomendations) % 2 == 1:
+        reply_keyboard.append([recomendations[-1]])
 
-    msg = bot.send_message(message.chat.id,
-                     'Поздравляю! Ты закончил вводную часть. Теперь просто отмечай понравившиеся факультеты и '
-                     'направления.\nСтуденты свяжутся с тобой!')
+    markup = types.ReplyKeyboardMarkup(reply_keyboard,
+                                       one_time_keyboard=True,
+                                       resize_keyboard=True)
 
-    bot.register_next_step_handler(msg, abiturient_recomendations)
-    if (not user_in_db(message.from_user.id)):
-        put_abitur_into_db(message.from_user.username, message.text)
+    bot.send_message(message.chat.id, 'Укажи, какой факультет тебе интересен?\nЯ о нём расскажу.',
+                     reply_markup=[markup])
 
+    menu_liked = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    button_like = types.KeyboardButton('интересует')
+    button_dislike = types.KeyboardButton('неинтересует')
+    menu_liked.add(button_like, button_dislike)
 
-# def abiturient_recomendations(message):
-#     recomendations = get_recomendations()
-#     print(recomendations)
-#     reply_keyboard = []
-#     for i in range(len(recomendations[::2])):
-#         reply_keyboard.append([recomendations[i], recomendations[i + 1]])
-#     if len(recomendations) % 2 == 1:
-#         reply_keyboard.append([recomendations[-1]])
-#
-#     markup = types.ReplyKeyboardMarkup(reply_keyboard,
-#                                        one_time_keyboard=True,
-#                                        resize_keyboard=True)
-#
-#     bot.send_message(message.chat.id, 'Укажи, какой факультет тебе интересен?\nЯ о нём расскажу.',
-#                      reply_markup=[markup])
-
-
-def student_registration(message: types.Message):
-    bot.send_message(message.chat.id, 'Напиши свой юзернейм в формате @vasyapupkin')
-    if message.text:
-        global student_username = message.text
-        student_registration_2(message)
-
-def student_registration_2(message):
+def student_registration(message):
     all_faculties = get_all_faculties()
     print(all_faculties)
     reply_keyboard = []
@@ -117,15 +126,16 @@ def student_registration_2(message):
 
     bot.send_message(message.chat.id, 'Укажи, в каком факультете ты обучаешься?',
                          reply_markup=[markup])
-    global student_fac = message.text
 
-        all_branches = get_branches()
+
+def student_registration_finish(message):
+        all_branches = get_branches(student_fac)
         print(all_branches)
         reply_keyboard = []
-        for i in range(len(all_branches[::2])):
-            reply_keyboard.append([all_branches[i], all_branches[i + 5]])
-        if len(all_branches) % 2 != 0:
-            reply_keyboard.append([all_branches[i - 2]])
+        for i in range(len(all_branches[:len(all_branches)-1:2])):
+            reply_keyboard.append([all_branches[i], all_branches[i + len(all_branches) // 2]])
+        if len(all_branches) % 2 == 1:
+            reply_keyboard.append([all_branches[-1]])
 
         markup = types.ReplyKeyboardMarkup(reply_keyboard,
                                            one_time_keyboard=True,
@@ -135,14 +145,6 @@ def student_registration_2(message):
                          reply_markup=[markup])
 
         telebot.types.ReplyKeyboardRemove()
-        student_branch = message.text
-
-        bot.send_message(message.chat.id,
-                         'Поздравляю! Ты закончил вводную часть. Теперь жди абитуриентов, нуждающихся в твоей помощи.')
-
-
-        if (not user_in_db(message.from_user.id)):
-            put_student_into_db(student_username, student_fac, student_branch)
 
 
 while True:
