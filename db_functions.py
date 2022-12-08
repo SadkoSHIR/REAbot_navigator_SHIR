@@ -45,6 +45,8 @@ def get_faculty(id):  # от id получаем всю инфу о факуль
 
     con.commit()
 
+    faculty_info = list([x for x in faculty_info])
+
     return faculty_info
 
 
@@ -81,7 +83,9 @@ def get_brach_info(id):
     con = sqlite3.connect('REA_DB.db')
     cur = con.cursor()
 
-    branch_info = cur.execute(f"SELECT * FROM Branches WHERE id = {id}").fetchall()[0]
+    branch_info = cur.execute(f"SELECT * FROM Branches WHERE id = '{id}'").fetchall()[0]
+
+    branch_info = list([x for x in branch_info])
 
     con.commit()
 
