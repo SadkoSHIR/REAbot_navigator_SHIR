@@ -9,10 +9,23 @@ from db_functions import get_brach_info, get_students, get_rec_branches
 from passwords import TOKEN
 
 bot = telebot.TeleBot(TOKEN)
-student_fac = ''
-recommends = []
-rec_brs = []
-cur, fac, br = 'fac', 0, 0
+# student_fac = ''
+# recommends = []
+# rec_brs = []
+# cur, fac, br = 'fac', 0, 0
+
+users = {}
+
+
+class User:
+    def __init__(self, type):
+        self.type = type
+        self.student_fac = ''
+        self.recommends = []
+        self.rec_brs = []
+        self.cur = 'fac'
+        self.fac = 0
+        self.br = 0
 
 
 @bot.message_handler(commands=['help'])
@@ -45,14 +58,23 @@ def user_registration(message):
 
 @bot.message_handler(content_types='text')
 def text_message(message):
-    global student_fac
-    global recommends, cur, fac, br, rec_brs
+    print(message.text)
+    print(users)
+    # global student_fac
+    # global recommends, cur, fac, br, rec_brs
     if message.text == 'абитуриент':
+        user = User(message.text)
+        users[message.chat.id] = user
+
         abiturient_registration(message)
     elif message.text == 'студент':
+        user = User(message.text)
+        users[message.chat.id] = user
+
         student_registration(message)
     elif message.text in get_all_spheres():
-        if (not user_in_db(message.from_user.id)):
+        print('Before user_in_db ', message.from_user.id)
+        if not user_in_db(message.from_user.id):
             put_abitur_into_db(message.from_user.id, message.text)
 
         bot.send_message(message.chat.id,
@@ -63,57 +85,61 @@ def text_message(message):
 
         telebot.types.ReplyKeyboardRemove()
 
-        recommends = get_recomendations(message.from_user.id)
-        print(recommends)
+        users[message.chat.id].recommends = get_recomendations(message.from_user.id)
+        print(users[message.chat.id].recommends)
         send_recommendations(message)
-        cur, fac, br = 'fac', 0, 0
+        users[message.chat.id].cur = 'fac'
+        users[message.chat.id].fac = 0
+        users[message.chat.id].br = 0
     elif message.text in get_all_faculties():
-        student_fac = message.text
+        users[message.chat.id].student_fac = message.text
         student_registration_finish(message)
-    elif message.text in get_branches(student_fac):
+    elif message.text in get_branches(users[message.chat.id].student_fac):
         student_branch = message.text
 
         bot.send_message(message.chat.id,
                          'Поздравляю! Ты закончил вводную часть. Теперь жди абитуриентов, нуждающихся в твоей помощи.')
 
-        if (not user_in_db(message.from_user.id)):
-            put_student_into_db(message.from_user.id, student_fac, student_branch)
+        if not user_in_db(message.from_user.id):
+            put_student_into_db(message.from_user.id, users[message.chat.id].student_fac, student_branch)
 
     elif message.text == 'Интересует':
-        if cur == 'fac':
-            cur = 'br'
-            rec_brs = get_rec_branches(recommends[fac])
-            print(rec_brs)
+        if users[message.chat.id].cur == 'fac':
+            users[message.chat.id].cur = 'br'
+            users[message.chat.id].rec_brs = get_rec_branches(users[message.chat.id].recommends[users[message.chat.id].fac])
+            print(users[message.chat.id].rec_brs)
             send_recommendations(message)
-        elif cur == 'br':
+        elif users[message.chat.id].cur == 'br':
             bot.send_message(message.chat.id,
-                             'Ваша заявка отправлена студентам.\nтеперь дождитесь ответа')
-            send_student_request(message, br)
-            if br + 1 == len(rec_brs):
-                if fac + 1 == len(recommends):
+                             'Ваша заявка отправлена студентам.\nТеперь дождитесь ответа')
+            send_student_request(message)
+            if users[message.chat.id].br + 1 == len(users[message.chat.id].rec_brs):
+                if users[message.chat.id].fac + 1 == len(users[message.chat.id].recommends):
                     bot.send_message(message.from_user.id, 'На этом пока все! Спасибо за участие')
+                    del users[message.chat.id]
                     return
-                cur = 'fac'
-                fac += 1
-                br = 0
+                users[message.chat.id].cur = 'fac'
+                users[message.chat.id].fac += 1
+                users[message.chat.id].br = 0
             else:
-                br += 1
+                users[message.chat.id].br += 1
             send_recommendations(message)
 
     elif message.text == 'Не интересует':
-        if cur == 'fac':
-            if fac + 1 == len(recommends):
+        if users[message.chat.id].cur == 'fac':
+            if users[message.chat.id].fac + 1 == len(users[message.chat.id].recommends):
                 bot.send_message(message.from_user.id, 'На этом пока все! Спасибо за участие')
+                del users[message.chat.id]
                 return
-            fac += 1
+            users[message.chat.id].fac += 1
             send_recommendations(message)
-        elif cur == 'br':
-            if br + 1 == len(rec_brs):
-                cur = 'fac'
-                fac += 1
-                br = 0
+        elif users[message.chat.id].cur == 'br':
+            if users[message.chat.id].br + 1 == len(users[message.chat.id].rec_brs):
+                users[message.chat.id].cur = 'fac'
+                users[message.chat.id].fac += 1
+                users[message.chat.id].br = 0
             else:
-                br += 1
+                users[message.chat.id].br += 1
             send_recommendations(message)
 
 
@@ -153,8 +179,8 @@ def student_registration(message):
 
 
 def student_registration_finish(message):
-    global student_fac
-    all_branches = get_branches(student_fac)
+    # global student_fac
+    all_branches = get_branches(users[message.chat.id].student_fac)
     print(all_branches)
     reply_keyboard = []
     for i in range(len(all_branches[:len(all_branches)-1:2])):
@@ -173,26 +199,28 @@ def student_registration_finish(message):
 
 
 def send_recommendations(message):
-    global recommends
-    global cur, fac, br
-    if cur == 'fac':  # сейчас присылаем факультет
+    # global recommends
+    # global cur, fac, br
+    if users[message.chat.id].cur == 'fac':  # сейчас присылаем факультет
         markup = types.ReplyKeyboardMarkup([['Интересует', 'Не интересует']],
                                            one_time_keyboard=True,
                                            resize_keyboard=True)
-        bot.send_message(message.chat.id, '\n\n'.join(get_faculty(recommends[fac])[1:]),
+        bot.send_message(message.chat.id, '\n\n'.join(get_faculty(users[message.chat.id].recommends[users[message.chat.id].fac])[1:]),
                          reply_markup=[markup])
-    elif cur == 'br':
+    elif users[message.chat.id].cur == 'br':
         markup = types.ReplyKeyboardMarkup([['Интересует', 'Не интересует']],
                                            one_time_keyboard=True,
                                            resize_keyboard=True)
-        bot.send_message(message.chat.id, '\n\n'.join(get_brach_info(rec_brs[br])[1:2] + get_brach_info(rec_brs[br])[4:]),
+        bot.send_message(message.chat.id, '\n\n'.join(get_brach_info(users[message.chat.id].rec_brs[users[message.chat.id].br])[1:2] + get_brach_info(users[message.chat.id].rec_brs[users[message.chat.id].br])[4:]),
                          reply_markup=[markup])
 
 
-def send_student_request(message, br):
-    students = get_students(rec_brs[br])
-    if message.from_user.username:
+def send_student_request(message):
+    students = get_students(users[message.chat.id].rec_brs[users[message.chat.id].br])
+    print(students)
+    if message.from_user.username and students:
         for id in students:
+            print(id)
             bot.send_message(id, f'Абитуриент https://t.me/{message.from_user.username} хочет получить консультацию. '
                                  f'Напиши ему и ответь на интересующие вопросы!')
 
