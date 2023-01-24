@@ -6,6 +6,8 @@ from db_functions import put_abitur_into_db, put_student_into_db
 from db_functions import get_recomendations, get_faculty, get_branches
 from db_functions import get_brach_info, get_students, get_rec_branches
 
+from recomendations import RecommendModel, Anketa
+
 from passwords import TOKEN
 
 bot = telebot.TeleBot(TOKEN)
@@ -14,8 +16,10 @@ bot = telebot.TeleBot(TOKEN)
 # rec_brs = []
 # cur, fac, br = 'fac', 0, 0
 
-users = {}
+RecommendModel.create_model()
+Anketa.create_anketa()
 
+users = {}
 
 class User:
     def __init__(self, type):
@@ -26,6 +30,9 @@ class User:
         self.cur = 'fac'
         self.fac = 0
         self.br = 0
+        self.state = 'none'
+        self.anketa_ind = -1
+        self.anketa = []
 
 
 @bot.message_handler(commands=['help'])
@@ -68,16 +75,37 @@ def text_message(message):
         # print('users', users)
         # global student_fac
         # global recommends, cur, fac, br, rec_brs
-        if message.text == 'абитуриент':
+        if message.chat.id in users and users[message.chat.id].state == 'anketa':
+            if message.text.isdigit():
+
+                users[message.chat.id].anketa.append(int(message.text))
+
+                if users[message.chat.id].anketa_ind < 10:
+                    # get next question
+                    users[message.chat.id].anketa_ind += 1
+                    bot.send_message(message.chat.id,
+                                     Anketa.get_question(users[message.chat.id].anketa_ind))
+                else:
+                    # get recommendation
+                    users[message.chat.id].state = 'none'
+                    recommend = RecommendModel.get_recommendation(users[message.chat.id].anketa)
+                    abiturient_registration(message, recommend)
+            else:
+                bot.send_message(message.chat.id,
+                                 'Надо ввести число:')
+
+        elif message.text == 'абитуриент':
             user = User(message.text)
             users[message.chat.id] = user
 
-            abiturient_registration(message)
+            abiturient_quest(message)
+
         elif message.text == 'студент':
             user = User(message.text)
             users[message.chat.id] = user
 
             student_registration(message)
+
         elif message.text in get_all_spheres():
             # print('Before user_in_db ', message.from_user.id)
             if not user_in_db(message.from_user.id):
@@ -97,9 +125,11 @@ def text_message(message):
             users[message.chat.id].cur = 'fac'
             users[message.chat.id].fac = 0
             users[message.chat.id].br = 0
+
         elif message.text in get_all_faculties():
             users[message.chat.id].student_fac = message.text
             student_registration_finish(message)
+
         elif message.text in get_branches(users[message.chat.id].student_fac):
             student_branch = message.text
 
@@ -149,11 +179,21 @@ def text_message(message):
                 send_recommendations(message)
 
     except Exception as e:
-        # print(repr(e))
+        print(repr(e))
         bot.send_message(message.from_user.id, 'На этом пока все! Спасибо за участие')
 
 
-def abiturient_registration(message):
+def abiturient_quest(message):
+    users[message.chat.id].state = 'anketa'
+    users[message.chat.id].anketa_ind = 1
+
+    bot.send_message(message.from_user.id,
+                     'Пройди небольшой опрос, чтобы мы смогли порекомендовать тебе направление обучения.\n'
+                     'Ответ на вопрос это число от 1 до 10 в соответствии с верностью утверждения.\n\n'
+                     + Anketa.get_question(1), reply_markup=False)
+
+
+def abiturient_registration(message, recommend):
     all_spheres = get_all_spheres()
     # print('all_spheres', all_spheres)
     reply_keyboard = []
@@ -166,7 +206,9 @@ def abiturient_registration(message):
                                        one_time_keyboard=True,
                                        resize_keyboard=True)
 
-    bot.send_message(message.chat.id, 'Укажи, какая одна сфера тебя интересует больше всего?',
+    bot.send_message(message.chat.id,
+                     'Наша рекоммендация: ' + recommend +
+                     '\n\nТеперь укажи, какая одна сфера тебя интересует больше всего?',
                      reply_markup=[markup])
     # bot.register_next_step_handler(msg, #следующий шаг)
 
