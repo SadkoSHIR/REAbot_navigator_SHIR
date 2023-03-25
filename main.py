@@ -21,6 +21,7 @@ Anketa.create_anketa()
 
 users = {}
 
+
 class User:
     def __init__(self, type):
         self.type = type
@@ -112,8 +113,7 @@ def text_message(message):
                 put_abitur_into_db(message.from_user.id, message.text)
 
             bot.send_message(message.chat.id,
-                             'Поздравляю! Ты закончил вводную часть. Теперь просто отмечай понравившиеся факультеты и '
-                             'направления.\nСтуденты свяжутся с тобой!')
+                             'Поздравляю! Ты закончил вводную часть. Теперь просто отмечай понравившиеся факультеты.')
 
             # abiturient_recomendations(message)
 
@@ -134,7 +134,8 @@ def text_message(message):
             student_branch = message.text
 
             bot.send_message(message.chat.id,
-                             'Поздравляю! Ты закончил вводную часть. Теперь жди абитуриентов, нуждающихся в твоей помощи.')
+                             'Поздравляю! Ты закончил вводную часть. '
+                             'Теперь жди абитуриентов, нуждающихся в твоей помощи.')
 
             if not user_in_db(message.from_user.id):
                 put_student_into_db(message.from_user.id, users[message.chat.id].student_fac, student_branch)
@@ -144,10 +145,16 @@ def text_message(message):
                 users[message.chat.id].cur = 'br'
                 users[message.chat.id].rec_brs = get_rec_branches(users[message.chat.id].recommends[users[message.chat.id].fac])
                 # print('rec_brs', users[message.chat.id].rec_brs)
+                bot.send_message(message.chat.id,
+                                 'Отлично, теперь отмечай понравившиеся направления на этой высшей школе.'
+                                 '\nСтуденты свяжутся с тобой!')
+
                 send_recommendations(message)
             elif users[message.chat.id].cur == 'br':
                 bot.send_message(message.chat.id,
-                                 'Ваша заявка отправлена студентам.\nТеперь дождитесь ответа')
+                                 '<i>Ваша заявка отправлена соответствующим студентам</i>', parse_mode='HTML')
+                bot.send_message(message.chat.id,
+                                 'Теперь продолжаем!')
                 send_student_request(message)
                 if users[message.chat.id].br + 1 == len(users[message.chat.id].rec_brs):
                     if users[message.chat.id].fac + 1 == len(users[message.chat.id].recommends):
@@ -157,6 +164,10 @@ def text_message(message):
                     users[message.chat.id].cur = 'fac'
                     users[message.chat.id].fac += 1
                     users[message.chat.id].br = 0
+                    bot.send_message(message.from_user.id,
+                                     'На этом все, направления на этом факультете закончились. '
+                                     'Я продолжу тебе присылать другие факультеты.')
+
                 else:
                     users[message.chat.id].br += 1
                 send_recommendations(message)
@@ -174,6 +185,10 @@ def text_message(message):
                     users[message.chat.id].cur = 'fac'
                     users[message.chat.id].fac += 1
                     users[message.chat.id].br = 0
+                    bot.send_message(message.from_user.id,
+                                     'На этом все, направления на этом факультете закончились. '
+                                     'Я продолжу тебе присылать другие факультеты.')
+
                 else:
                     users[message.chat.id].br += 1
                 send_recommendations(message)
@@ -189,8 +204,10 @@ def abiturient_quest(message):
 
     bot.send_message(message.from_user.id,
                      'Пройди небольшой опрос, чтобы мы смогли порекомендовать тебе направление обучения.\n'
-                     'Ответ на вопрос это число от 1 до 10 в соответствии с верностью утверждения.\n\n'
-                     + Anketa.get_question(1), reply_markup=False)
+                     '<u>Ответ на вопрос это число от 1 до 10</u> в соответствии с верностью утверждения.\n\n',
+                     parse_mode='HTML')
+    bot.send_message(message.from_user.id,
+                     Anketa.get_question(1), reply_markup=False)
 
 
 def abiturient_registration(message, recommend):
@@ -207,7 +224,8 @@ def abiturient_registration(message, recommend):
                                        resize_keyboard=True)
 
     bot.send_message(message.chat.id,
-                     'Наша рекоммендация: ' + recommend +
+                     'Наша рекоммендация: ' + '<b>'+recommend+'</b>', parse_mode='HTML')
+    bot.send_message(message.chat.id,
                      '\n\nТеперь укажи, какая одна сфера тебя интересует больше всего?',
                      reply_markup=[markup])
     # bot.register_next_step_handler(msg, #следующий шаг)
@@ -257,13 +275,23 @@ def send_recommendations(message):
         markup = types.ReplyKeyboardMarkup([['Интересует', 'Не интересует']],
                                            one_time_keyboard=True,
                                            resize_keyboard=True)
-        bot.send_message(message.chat.id, '\n\n'.join(get_faculty(users[message.chat.id].recommends[users[message.chat.id].fac])[1:]),
-                         reply_markup=[markup])
+        s = get_faculty(users[message.chat.id].recommends[users[message.chat.id].fac])[1:]
+        rrecs = f'{s[0]}\n<b>{s[2]}</b>\n\n{s[1]}'
+        # bot.send_message(message.chat.id, rrecs,
+        #                  reply_markup=[markup])
+        bot.send_photo(message.chat.id,
+                       photo=open('images/'+str(users[message.chat.id].recommends[users[message.chat.id].fac])+'.jpg', 'rb'),
+                       caption=rrecs, parse_mode='HTML',
+                       reply_markup=[markup])
     elif users[message.chat.id].cur == 'br':
         markup = types.ReplyKeyboardMarkup([['Интересует', 'Не интересует']],
                                            one_time_keyboard=True,
                                            resize_keyboard=True)
-        bot.send_message(message.chat.id, '\n\n'.join(get_brach_info(users[message.chat.id].rec_brs[users[message.chat.id].br])[1:2] + get_brach_info(users[message.chat.id].rec_brs[users[message.chat.id].br])[4:]),
+        s = get_brach_info(users[message.chat.id].rec_brs[users[message.chat.id].br])[1:2] + get_brach_info(users[message.chat.id].rec_brs[users[message.chat.id].br])[4:]
+        progs = '\n'.join(list(' - '+x for x in s[1].split(' - ')))
+        egs = '\n'.join(list(' - '+x for x in s[2].split(' - ')))
+        rrecs = f'<u>Направление:</u> <b>{s[0]}</b>\n\n<u>Программы:</u>\n{progs}\n\n<u>ЕГЭ:</u>\n{egs}'
+        bot.send_message(message.chat.id, rrecs, parse_mode='HTML',
                          reply_markup=[markup])
 
 
